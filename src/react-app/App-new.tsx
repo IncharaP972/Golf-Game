@@ -3,7 +3,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import StartScreen from "@/react-app/pages/StartScreen";
 import Game from "@/react-app/pages/Game";
 import LevelSelectScreen from "@/react-app/pages/LevelSelectScreen";
-import Login from "@/react-app/pages/Login-updated";
+import Login from "@/react-app/pages/Login";
 
 export default function App() {
   return (

@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pause, Volume2, Trophy, ArrowRight, RotateCcw as Replay } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
+import { FirebaseLeaderboardService } from '../services/firebase-leaderboard';
 import { useAuth } from '../contexts/AuthContext';
-import { FirebaseLeaderboardService } from '../services/firebase-leaderboard-corrected';
 
 export default function Game() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
   const queryParams = new URLSearchParams(location.search);
   const initialLevel = parseInt(queryParams.get('level') || '1', 10);
+  const { user, userProfile } = useAuth();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameInstanceRef = useRef<any>(null);
@@ -34,22 +34,21 @@ export default function Game() {
           setShowCongrats(true);
 
           // Save score to Firebase if user is authenticated
-          if (user) {
+          if (user && userProfile) {
             try {
               await FirebaseLeaderboardService.addScore(
                 user.uid,
-                user.displayName || user.email || 'Anonymous',
+                userProfile.displayName || user.displayName || 'Anonymous',
                 level,
                 strokes
               );
-              console.log('Score saved to Firebase!');
+              console.log('Score saved to Firebase successfully!');
             } catch (error) {
-              console.error('Error saving score to Firebase:', error);
+              console.error('Failed to save score to Firebase:', error);
+              // Could show a toast notification here
             }
           } else {
-            // Fallback to local storage if not authenticated
-            const playerName = localStorage.getItem('playerName') || 'Anonymous';
-            FirebaseLeaderboardService.addScoreToLocal(playerName, level, strokes);
+            console.warn('User not authenticated - score not saved to leaderboard');
           }
 
           // Persist progress immediately when a level is completed
@@ -311,18 +310,6 @@ export default function Game() {
                   {getScoreDescription(completedStrokes, getParForLevel(currentLevel))}
                 </p>
               </div>
-
-              {/* Firebase Save Status */}
-              {user && (
-                <div className="bg-blue-50 rounded-lg p-3 mb-4 border border-blue-200">
-                  <p className="text-sm font-semibold text-blue-800">
-                    ✅ Score saved to Firebase!
-                  </p>
-                  <p className="text-xs text-blue-600">
-                    Your score will appear on the global leaderboard
-                  </p>
-                </div>
-              )}
 
               {/* Action Buttons */}
               <div className="space-y-3">

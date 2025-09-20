@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { Play, Trophy, Target, Zap, Volume2, VolumeX, Flag, Music, LogIn, LogOut, User } from "lucide-react";
+import { Play, Trophy, Target, Zap, Volume2, VolumeX, Flag, Music, LogIn, User } from "lucide-react";
 import { useNavigate } from "react-router";
+import FirebaseLeaderboard from "../components/FirebaseLeaderboard";
 import { useAuth } from "../contexts/AuthContext";
-import Leaderboard from "../components/Leaderboard";
 
 export default function StartScreen() {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, userProfile, signOut } = useAuth();
   const [isLoaded, setIsLoaded] = useState(false);
   const [name, setName] = useState("");
   const [savedName, setSavedName] = useState<string | null>(null);
@@ -37,12 +37,12 @@ export default function StartScreen() {
     navigate("/levels");
   };
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
+  const handleLogin = () => {
+    navigate("/login");
+  };
+
+  const handleLeaderboard = () => {
+    navigate("/leaderboard");
   };
 
   return (
@@ -59,33 +59,32 @@ export default function StartScreen() {
       {/* Background overlay for better readability */}
       <div className="absolute inset-0 bg-black/30"></div>
 
-      {/* Authentication buttons */}
-      <div className="absolute top-6 left-6 z-10 flex items-center gap-4">
-        {user ? (
-          <div className="flex items-center gap-3 bg-white/20 backdrop-blur-sm p-3 rounded-full">
-            <div className="w-8 h-8 bg-white/30 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
+      {/* User Authentication Section */}
+      <div className="absolute top-6 left-6 z-10">
+        <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 shadow-2xl border border-white/30">
+          {user ? (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-white">
+                <User className="w-5 h-5" />
+                <span className="font-medium">{userProfile?.displayName || user.displayName}</span>
+              </div>
+              <button
+                onClick={signOut}
+                className="bg-red-500/20 hover:bg-red-500/30 text-white px-3 py-1 rounded-lg text-sm transition-colors"
+              >
+                Sign Out
+              </button>
             </div>
-            <span className="text-white text-sm font-medium">
-              {user.displayName || user.email}
-            </span>
+          ) : (
             <button
-              onClick={handleSignOut}
-              className="bg-red-500/20 hover:bg-red-500/30 p-2 rounded-full transition-colors duration-200"
-              title="Sign Out"
+              onClick={handleLogin}
+              className="flex items-center gap-2 bg-blue-500/20 hover:bg-blue-500/30 text-white px-4 py-2 rounded-lg transition-colors"
             >
-              <LogOut className="w-4 h-4 text-white" />
+              <LogIn className="w-4 h-4" />
+              Sign In
             </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => navigate('/login')}
-            className="bg-white/20 backdrop-blur-sm p-3 rounded-full hover:bg-white/30 transition-colors duration-200 flex items-center gap-2"
-          >
-            <LogIn className="w-5 h-5 text-white" />
-            <span className="text-white text-sm font-medium">Sign In</span>
-          </button>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Sound toggle */}
@@ -249,7 +248,7 @@ export default function StartScreen() {
             isLoaded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
           }`}
         >
-          <Leaderboard maxEntries={8} />
+          <FirebaseLeaderboard maxEntries={8} />
         </div>
       </div>
     </div>
